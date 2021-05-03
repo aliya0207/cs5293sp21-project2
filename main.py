@@ -178,7 +178,7 @@ def get_predictions(probability, redactions):
         predicted_words = []
         for i in range(0,3):
             index_range = top_3_idx[i]
-            predicted_word = remove_duplicate_names[index_range]
+            predicted_word = names_unique[index_range]
             predicted_words.append(predicted_word)
         total_predicted_words.append(predicted_words)
     return (total_predicted_words)
@@ -220,7 +220,7 @@ if __name__=='__main__':
     model = svm.SVC(probability=True)
     #model = SGDClassifier()
     model.fit(X, full_list_names)
-    names_unique = Get_Unique_Names(full_list_names)
+    names_unique = remove_duplicate_names(full_list_names)
 
    
     redacted_data, file_names = Read_files(output_path_redacted)
