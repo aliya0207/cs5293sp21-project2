@@ -38,20 +38,6 @@ def Read_files(text_files):
     #print(filenames)
     return data, filenames
 
-def read_files(path):
-    os.chdir(path)
-    data = []
-    file_names = []
-    for file in os.listdir():
-        if file.endswith(".txt"):
-            file_names.append(file)
-            f_path=f'{path}\{file}'
-            with io.open(f_path, 'r', encoding='utf-8') as file1:
-                text = file1.read()
-                data.append(text)
-            
-    return data, file_names
-
 def get_redacted_entity(data):
     person_list=[]
     #person_list1=[]
