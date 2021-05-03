@@ -54,9 +54,6 @@ def get_redacted_entity(data):
     count=len(person_list)            
     personlist1=set(person_list)
     person_list1=list(personlist1)
-    #print(persons)
-    #person_list1=sorted(person_list1, reverse= True)
-    #print(person_list1)
     return person_list1
 
 def training_features(text, person_name_list):
@@ -108,7 +105,7 @@ def testing_features(text, redacted_names_in_block):
     return features
 
 
-def Redact(replace,data):
+def redact_data(replace,data):
     for j in range(0,len(replace)):
         if replace[j] in data:
             length = len(replace[j])
@@ -203,7 +200,7 @@ if __name__=='__main__':
         #print(person_list_result)
         #replace_result = Fields_to_redact(person_list_result)
     
-        redact_result = Redact(replace_result,train_data[itr])
+        redact_result = redact_data(replace_result,train_data[itr])
         Save_to_output_redacted(redact_result, output_path_redacted, file_names[itr])
         redacted_data_list.append(redact_result)
         
