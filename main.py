@@ -55,11 +55,11 @@ def get_redacted_entity(data):
     personlist1=set(person_list)
     person_list1=list(personlist1)
     #print(persons)
-    person_list1=sorted(person_list1, reverse= True)
+    #person_list1=sorted(person_list1, reverse= True)
     #print(person_list1)
     return person_list1
 
-def retrieve_train_features(text, person_name_list):
+def training_features(text, person_name_list):
     features = []
     cc = len(text)
     wc = len(text.split())
@@ -72,18 +72,18 @@ def retrieve_train_features(text, person_name_list):
     
     for i in range(0, len(person_name_list)):
         dict = {}
-        dict['sent_count'] = sc
-        dict['word_count'] = wc
-        dict['character_count'] = cc
-        dict['space_count'] = cs
-        dict['name_length'] = len(person_name_list[i])
-        dict['total_names'] = len(person_name_list)
+        dict['total_sentences'] = sc
+        dict['total_words'] = wc
+        dict['total_characters'] = cc
+        dict['total_spaces'] = cs
+        dict['length_of_name'] = len(person_name_list[i])
+        dict['names_count'] = len(person_name_list)
         
         features.append(dict)
 
     return features
 
-def retrieve_test_features(text, redacted_names_in_block):
+def testing_features(text, redacted_names_in_block):
     features = []
     cc = len(text)
     wc = len(text.split())
@@ -96,22 +96,22 @@ def retrieve_test_features(text, redacted_names_in_block):
             
     for i in range(0, len(redacted_names_in_block)):
         dict = {}
-        dict['sent_count'] = sc
-        dict['word_count'] = wc
-        dict['character_count'] = cc
-        dict['space_count'] = cs
-        dict['name_length'] = len(redacted_names_in_block[i])
-        dict['total_names'] = len(redacted_names_in_block)
+        dict['total_sentences'] = sc
+        dict['total_words'] = wc
+        dict['total_characters'] = cc
+        dict['total_spaces'] = cs
+        dict['length_of_name'] = len(redacted_names_in_block[i])
+        dict['names_count'] = len(redacted_names_in_block)
         
         features.append(dict)
 
     return features
 
-def Fields_to_redact(person_list1):
-    replace=[]
-    for element in person_list1:
-        replace.append(element)
-    return replace
+#def Fields_to_redact(person_list1):
+    #replace=[]
+    #for element in person_list1:
+        #replace.append(element)
+    #return replace
 
 def Redact(replace,data):
     for j in range(0,len(replace)):
@@ -175,7 +175,7 @@ def Read_files2(text_files):
     return data, filenames
   
   
-def retrieve_predicted_words(probabilities_all_classes, Names_Redacted):
+def get_predictions(probabilities_all_classes, Names_Redacted):
     All_predicted_words_review = []
     for test_word in range(0, len(Names_Redacted)):
         test_word_probabilities = probabilities_all_classes[test_word]
@@ -207,22 +207,18 @@ if __name__=='__main__':
     redacted_result = []
     for itr in range(0, len(train_data)):
     
-        person_list_result = get_redacted_entity(train_data[itr])
+        replace_result = get_redacted_entity(train_data[itr])
         #print(person_list_result)
-        replace_result = Fields_to_redact(person_list_result)
-    
-        for entry in replace_result_list:
-            for names in entry:
-                names_list.append(names)
+        #replace_result = Fields_to_redact(person_list_result)
     
         redact_result = Redact(replace_result,train_data[itr])
         Save_to_output_redacted(redact_result, output_path_redacted, file_names[itr])
         redacted_data_list.append(redact_result)
         
-        list_names_dict_features = retrieve_train_features(train_data[itr], person_list_result)
+        list_names_dict_features = training_features(train_data[itr], replace_result)
         full_list_training_features.extend(list_names_dict_features)
     
-        full_list_names.extend(person_list_result)
+        full_list_names.extend(replace_result)
         
     #TODO: store the results in the file
     #for now I will store the redacted result in a list and pass it in the testing function
@@ -244,10 +240,10 @@ if __name__=='__main__':
     for i in range(0, 12):
        # print(redacted_data[i])    
         redacted_names = re.findall(r'(\u2588+)', redacted_data[i])
-        test_features = retrieve_test_features(redacted_data[i], redacted_names)
+        test_features = testing_features(redacted_data[i], redacted_names)
         if len(test_features) > 0:
             X_test = v.fit_transform(test_features).toarray()
             probabilities_all_classes = model.predict_proba(X_test)
-            All_predicted_words_review = retrieve_predicted_words(probabilities_all_classes, redacted_names)
+            All_predicted_words_review = get_predictions(probabilities_all_classes, redacted_names)
             Save_to_output_predicted(redacted_data[i], output_path_prediction, file_names[i], All_predicted_words_review, redacted_names)
        
