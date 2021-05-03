@@ -107,11 +107,6 @@ def testing_features(text, redacted_names_in_block):
 
     return features
 
-#def Fields_to_redact(person_list1):
-    #replace=[]
-    #for element in person_list1:
-        #replace.append(element)
-    #return replace
 
 def Redact(replace,data):
     for j in range(0,len(replace)):
@@ -120,7 +115,7 @@ def Redact(replace,data):
             data = re.sub(replace[j], length*'\u2588', data, 1)
     return data
 
-def Get_Unique_Names(names_list):
+def remove_duplicate_names(names_list):
     names_list_unique = (set(names_list))
     names_list_unique = list(names_list_unique)
     #unique = [i for n, i in enumerate(names_list) if i not in names_list[:n]]
@@ -175,21 +170,18 @@ def Read_files2(text_files):
     return data, filenames
   
   
-def get_predictions(probabilities_all_classes, Names_Redacted):
-    All_predicted_words_review = []
-    for test_word in range(0, len(Names_Redacted)):
-        test_word_probabilities = probabilities_all_classes[test_word]
-        top_3_idx = np.argsort(test_word_probabilities)[-3:]
-        #print(top_5_idx)
+def get_predictions(probability, redactions):
+    total_predicted_words = []
+    for x in range(0, len(redactions)):
+        prob = probability[x]
+        top_3_idx = np.argsort(prob)[-3:]
         predicted_words = []
         for i in range(0,3):
             index_range = top_3_idx[i]
-            predicted_word = names_unique[index_range]
+            predicted_word = remove_duplicate_names[index_range]
             predicted_words.append(predicted_word)
-        #print(predicted_words)
-        All_predicted_words_review.append(predicted_words)
-    #print(All_predicted_words_review)
-    return (All_predicted_words_review)
+        total_predicted_words.append(predicted_words)
+    return (total_predicted_words)
 
 if __name__=='__main__':
 #train the model
@@ -220,10 +212,7 @@ if __name__=='__main__':
     
         full_list_names.extend(replace_result)
         
-    #TODO: store the results in the file
-    #for now I will store the redacted result in a list and pass it in the testing function
-    
-    #print(redact_result)
+  
 
     v = DictVectorizer()
     X = v.fit_transform(full_list_training_features).toarray()
@@ -233,8 +222,7 @@ if __name__=='__main__':
     model.fit(X, full_list_names)
     names_unique = Get_Unique_Names(full_list_names)
 
-    #redacted_data = redacted_data_list[:12]
-    #read redacted data from path
+   
     redacted_data, file_names = Read_files(output_path_redacted)
         
     for i in range(0, 12):
@@ -243,7 +231,7 @@ if __name__=='__main__':
         test_features = testing_features(redacted_data[i], redacted_names)
         if len(test_features) > 0:
             X_test = v.fit_transform(test_features).toarray()
-            probabilities_all_classes = model.predict_proba(X_test)
-            All_predicted_words_review = get_predictions(probabilities_all_classes, redacted_names)
-            Save_to_output_predicted(redacted_data[i], output_path_prediction, file_names[i], All_predicted_words_review, redacted_names)
+            probability = model.predict_proba(X_test)
+            total_predicted_words = get_predictions(probability, redacted_names)
+            Save_to_output_predicted(redacted_data[i], output_path_prediction, file_names[i], total_predicted_words, redacted_names)
        
