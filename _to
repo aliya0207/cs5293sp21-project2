@@ -28,7 +28,7 @@ def Read_files(text_files):
     # print(text_files)
     data = []
     filenames =[]
-    path = os.getcwd()+"/"+text_files+"/*"
+    path = os.getcwd()+"/Data/*"
     for filename in glob.glob(path):
         #print(filename)
         filenames.append(filename.split('/')[-1])
@@ -142,9 +142,9 @@ def Get_Unique_Names(names_list):
     return names_list_unique 
   
 def Save_to_output_redacted(redact_result, folder, file_name):
-    folder = os.getcwd() + '/'+folder+"/"
+    folder = os.getcwd()+'/'+folder
     new_file = file_name.replace(".txt", ".redacted.txt")
-    isFolder = os.path.isdir(folder) 
+    isFolder = os.path.isdir(folder)
     if isFolder== False:
         os.makedirs(os.path.dirname(folder))
     with open( os.path.join(folder, new_file), "w+", encoding="utf-8") as f:
@@ -152,9 +152,8 @@ def Save_to_output_redacted(redact_result, folder, file_name):
         f.close()
         
 def Save_to_output_predicted(redact_result, folder, file_name, data_list, redacted_names):
-    folder = os.getcwd() + '/'+folder+"/"
+    folder = os.getcwd()+'/'+folder
     isFolder = os.path.isdir(folder)
-    print(folder)
     if isFolder== False:
         os.makedirs(os.path.dirname(folder))
     result = Get_predicted_output(redact_result, data_list, redacted_names)
@@ -170,12 +169,13 @@ def Get_predicted_output(redact_result, data_list, redacted_names):
             names += j
             names += ","
         names = names[:-1]
-        result +="\n {} top 3 predicted names are {}".format(redacted_names[i], names) 
+        result +="\n {} top 5` predicted names are {}".format(redacted_names[i], names) 
     return result
   
 
 def Read_files2(text_files):
     # print(text_files)
+    print("123")
     data = []
     filenames =[]
     for filename in glob.glob(os.getcwd()):
@@ -193,11 +193,11 @@ def retrieve_predicted_words(probabilities_all_classes, Names_Redacted):
     All_predicted_words_review = []
     for test_word in range(0, len(Names_Redacted)):
         test_word_probabilities = probabilities_all_classes[test_word]
-        top_3_idx = np.argsort(test_word_probabilities)[-3:]
+        top_5_idx = np.argsort(test_word_probabilities)[-5:]
         #print(top_5_idx)
         predicted_words = []
-        for i in range(0,3):
-            index_range = top_3_idx[i]
+        for i in range(0,5):
+            index_range = top_5_idx[i]
             predicted_word = names_unique[index_range]
             predicted_words.append(predicted_word)
         #print(predicted_words)
@@ -253,10 +253,10 @@ if __name__=='__main__':
 
     #redacted_data = redacted_data_list[:12]
     #read redacted data from path
-    redacted_data, file_names = Read_files(output_path_redacted)
-        
+    redacted_data, file_names = read_files(output_path_redacted)
+    
     for i in range(0, 12):
-       # print(redacted_data[i])    
+        
         redacted_names = re.findall(r'(\u2588+)', redacted_data[i])
         test_features = retrieve_test_features(redacted_data[i], redacted_names)
         if len(test_features) > 0:
@@ -264,4 +264,3 @@ if __name__=='__main__':
             probabilities_all_classes = model.predict_proba(X_test)
             All_predicted_words_review = retrieve_predicted_words(probabilities_all_classes, redacted_names)
             Save_to_output_predicted(redacted_data[i], output_path_prediction, file_names[i], All_predicted_words_review, redacted_names)
-       
