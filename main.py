@@ -161,6 +161,14 @@ def get_predictions(probability, redactions, names_unique):
         total_predicted_words.append(predicted_words)
     return (total_predicted_words)
 
+def train_models(full_list_training_features, full_list_names):
+    dv = DictVectorizer()
+    train = dv.fit_transform(full_list_training_features).toarray()
+    full_list_names = np.array(full_list_names)
+    model = svm.SVC(probability=True)
+    model.fit(train, full_list_names)
+    return dv, full_list_names, model
+    
 if __name__=='__main__':
 #train the model
     input_path = "Data"
@@ -190,14 +198,10 @@ if __name__=='__main__':
         full_list_training_features.extend(list_names_dict_features)
         full_list_names.extend(replace_result)
 
-    dv = DictVectorizer()
-    X = dv.fit_transform(full_list_training_features).toarray()
-    full_list_names = np.array(full_list_names)
-    model = svm.SVC(probability=True)
-    model.fit(X, full_list_names)
-    names_unique = remove_duplicate_names(full_list_names)
+    dv, full_list_names, model = train_models(full_list_training_features, full_list_names)
+    names_unique = remove_duplicate_names(full_list_names) 
     redacted_data, file_names = Read_files(output_path_redacted)
-        
+    
     for i in range(0, 12):
        # print(redacted_data[i])    
         redacted_names = re.findall(r'(\u2588+)', redacted_data[i])
