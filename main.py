@@ -129,7 +129,7 @@ def Save_to_output_redacted(redact_result, folder, file_name):
 def Save_to_output_predicted(redact_result, folder, file_name, data_list, redacted_names):
     folder = os.getcwd() + '/'+folder+"/"
     isFolder = os.path.isdir(folder)
-    print(folder)
+    #print(folder)
     if isFolder== False:
         os.makedirs(os.path.dirname(folder))
     result = Get_predicted_output(redact_result, data_list, redacted_names)
@@ -168,7 +168,16 @@ def train_models(full_list_training_features, full_list_names):
     model = svm.SVC(probability=True)
     model.fit(train, full_list_names)
     return dv, full_list_names, model
-    
+ 
+def (redacted_data, dv, model, names_unique, output_path_prediction, file_name):
+    redacted_names = re.findall(r'(\u2588+)', redacted_data)
+    test_features = testing_features(redacted_data, redacted_names)
+    if len(test_features) > 0:
+        X_test = dv.fit_transform(test_features).toarray()
+        probability = model.predict_proba(X_test)
+        total_predicted_words = get_predictions(probability, redacted_names, names_unique)
+        Save_to_output_predicted(redacted_data, output_path_prediction, file_name, total_predicted_words, redacted_names)
+        
 if __name__=='__main__':
 #train the model
     input_path = "Data"
@@ -203,12 +212,4 @@ if __name__=='__main__':
     redacted_data, file_names = Read_files(output_path_redacted)
     
     for i in range(0, 12):
-       # print(redacted_data[i])    
-        redacted_names = re.findall(r'(\u2588+)', redacted_data[i])
-        test_features = testing_features(redacted_data[i], redacted_names)
-        if len(test_features) > 0:
-            X_test = dv.fit_transform(test_features).toarray()
-            probability = model.predict_proba(X_test)
-            total_predicted_words = get_predictions(probability, redacted_names,names_unique)
-            Save_to_output_predicted(redacted_data[i], output_path_prediction, file_names[i], total_predicted_words, redacted_names)
-       
+        test_result(redacted_data[i], dv, model, names_unique, output_path_prediction, file_names[i])
