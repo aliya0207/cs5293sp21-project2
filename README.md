@@ -29,8 +29,9 @@ The extracted features are used for predicting the redacted name from the files.
 Used Dictvectorizer to get the feature. This is then used as an input to the model. Fit_transform is done on the training features. Output to the model are the redacted names. The model is fit by using Support Vector Classifier with probability. For every redacted word in the file, this will give a probability for each name in the training data. Then by using this model and probabilities, the top predicted names for the redacted names are displayed.
 
 #### Tests:
-test1.py:
-In this test case we are testing if the function get_redacted_entity() is taking the data and extracting the names from it. After calling this function we see whether the number of names returned are greater than zero or not.
+test_1.py:
+In this test case we are testing if the function get_redacted_entity() is taking the data and extracting the names from it. After calling this function we see whether the number of names returned are greater than zero or not. 
+For test_2.py we are checking if the right names are redacted by checking the output list and comparing.
 
 
 ### REFERENCES:
