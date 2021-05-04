@@ -1,9 +1,6 @@
 import numpy as np
 import fnmatch
 import re
-from sklearn.linear_model import SGDClassifier
-
-
 from sklearn.feature_extraction import DictVectorizer
 from sklearn import svm
 import glob
@@ -141,7 +138,7 @@ def Save_to_output_predicted(redact_result, folder, file_name, data_list, redact
         f.close()
         
 def Get_predicted_output(redact_result, data_list, redacted_names):
-    result =redact_result
+    result = redact_result
     for i in range(0, len(data_list)):
         names = ""
         for j in data_list[i]:
@@ -150,24 +147,8 @@ def Get_predicted_output(redact_result, data_list, redacted_names):
         names = names[:-1]
         result +="\n {} top 3 predicted names are {}".format(redacted_names[i], names) 
     return result
-  
 
-def Read_files2(text_files):
-    # print(text_files)
-    data = []
-    filenames =[]
-    for filename in glob.glob(os.getcwd()):
-        print(filename)
-        print(filename)
-        filenames.append(filename.split('/')[-1])
-        print(filenames)
-        with open(os.path.join(os.getcwd(), filename), "r") as f:
-            data1 = f.read()
-            data.append(data1)
-    return data, filenames
-  
-  
-def get_predictions(probability, redactions):
+def get_predictions(probability, redactions, names_unique):
     total_predicted_words = []
     for x in range(0, len(redactions)):
         prob = probability[x]
@@ -185,8 +166,8 @@ if __name__=='__main__':
     input_path = "Data"
     output_path_redacted = "redacted"
     output_path_prediction = "predicted"
+    #reading all the files at once and extracting their names 
     train_data, file_names = Read_files(input_path)
-    print(file_names)
     replace_result_list = []
     names_list = []
     redacted_data_list=[]
@@ -194,32 +175,27 @@ if __name__=='__main__':
     full_list_training_features = []
     full_list_names = []
     redacted_result = []
+    #iterating over each files, redact them and get the redacted names
     for itr in range(0, len(train_data)):
-    
+        #getting redacted entities
         replace_result = get_redacted_entity(train_data[itr])
-        #print(person_list_result)
-        #replace_result = Fields_to_redact(person_list_result)
-    
+        #redact the files
         redact_result = redact_data(replace_result,train_data[itr])
-        Save_to_output_redacted(redact_result, output_path_redacted, file_names[itr])
         redacted_data_list.append(redact_result)
-        
+        #saving each redacted files back into the directory
+        Save_to_output_redacted(redact_result, output_path_redacted, file_names[itr])
+        #creating dictionary of names with its features from the file
         list_names_dict_features = training_features(train_data[itr], replace_result)
+        #creating list of all the features 
         full_list_training_features.extend(list_names_dict_features)
-    
         full_list_names.extend(replace_result)
-        
-  
 
-    v = DictVectorizer()
-    X = v.fit_transform(full_list_training_features).toarray()
+    dv = DictVectorizer()
+    X = dv.fit_transform(full_list_training_features).toarray()
     full_list_names = np.array(full_list_names)
     model = svm.SVC(probability=True)
-    #model = SGDClassifier()
     model.fit(X, full_list_names)
     names_unique = remove_duplicate_names(full_list_names)
-
-   
     redacted_data, file_names = Read_files(output_path_redacted)
         
     for i in range(0, 12):
@@ -227,8 +203,8 @@ if __name__=='__main__':
         redacted_names = re.findall(r'(\u2588+)', redacted_data[i])
         test_features = testing_features(redacted_data[i], redacted_names)
         if len(test_features) > 0:
-            X_test = v.fit_transform(test_features).toarray()
+            X_test = dv.fit_transform(test_features).toarray()
             probability = model.predict_proba(X_test)
-            total_predicted_words = get_predictions(probability, redacted_names)
+            total_predicted_words = get_predictions(probability, redacted_names,names_unique)
             Save_to_output_predicted(redacted_data[i], output_path_prediction, file_names[i], total_predicted_words, redacted_names)
        
