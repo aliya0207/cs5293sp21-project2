@@ -169,7 +169,7 @@ def train_models(full_list_training_features, full_list_names):
     model.fit(train, full_list_names)
     return dv, full_list_names, model
  
-def (redacted_data, dv, model, names_unique, output_path_prediction, file_name):
+def test_result(redacted_data, dv, model, names_unique, output_path_prediction, file_name):
     redacted_names = re.findall(r'(\u2588+)', redacted_data)
     test_features = testing_features(redacted_data, redacted_names)
     if len(test_features) > 0:
